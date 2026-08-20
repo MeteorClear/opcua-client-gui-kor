@@ -65,7 +65,13 @@ class ConnectionDialog(QDialog):
         self.ui.connectButton.setFocus()
 
     def show_error(self, ex: Exception) -> None:
-        QMessageBox.warning(self, "Connection error", str(ex))
+        english = "Failed to connect."
+        translated = self.tr("Failed to connect.")
+        message = translated if translated == english else f"{translated}\n{english}"
+        detail = str(ex)
+        if detail and detail not in (english, translated):
+            message = f"{message}\n\n{detail}"
+        QMessageBox.warning(self, self.tr("Connection error"), message)
 
     def _seed_auth_fields(self) -> None:
         radios = {
@@ -166,12 +172,22 @@ class ConnectionDialog(QDialog):
         self.ui.userPrivateKeyButton.setEnabled(is_certificate)
 
     def _pick_user_certificate(self) -> None:
-        path, ok = QFileDialog.getOpenFileName(self, "Select certificate", self.user_certificate_path, "Certificate (*.der *.pem)")
+        path, ok = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Select certificate"),
+            self.user_certificate_path,
+            self.tr("Certificate (*.der *.pem)"),
+        )
         if ok:
             self.ui.userCertificateLineEdit.setText(path)
 
     def _pick_user_private_key(self) -> None:
-        path, ok = QFileDialog.getOpenFileName(self, "Select private key", self.user_private_key_path, "Private key (*.pem)")
+        path, ok = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Select private key"),
+            self.user_private_key_path,
+            self.tr("Private key (*.pem)"),
+        )
         if ok:
             self.ui.userPrivateKeyLineEdit.setText(path)
 
