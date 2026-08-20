@@ -56,4 +56,5 @@ follow_imports = "skip"
 packages = ["uaclient", "uaclient.theme", "uawidgets"]
 
 [tool.setuptools.package-data]
+uaclient = ["translations/*.qm"]
 uawidgets = ["py.typed"]
