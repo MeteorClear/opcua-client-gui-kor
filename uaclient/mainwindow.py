@@ -218,7 +218,11 @@ class DataChangeUI:
         self._subhandler = DataChangeHandler()
         self._subscribed_nodes: list[SyncNode] = []
         self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(["DisplayName", "Value", "Timestamp"])
+        self.model.setHorizontalHeaderLabels([
+            "DisplayName",
+            QCoreApplication.translate("DataChangeUI", "Value"),
+            QCoreApplication.translate("DataChangeUI", "Timestamp"),
+        ])
         self.window.ui.subView.setModel(self.model)
         header = self.window.ui.subView.horizontalHeader()
         assert header is not None
@@ -276,7 +280,11 @@ class DataChangeUI:
             logger.warning("already subscribed to node: %s ", node)
             return
         text = str(node.read_display_name().Text)
-        row = [QStandardItem(text), QStandardItem("No Data yet"), QStandardItem("")]
+        row = [
+            QStandardItem(text),
+            QStandardItem(QCoreApplication.translate("DataChangeUI", "No Data yet")),
+            QStandardItem(""),
+        ]
         row[0].setData(node)
         self.model.appendRow(row)
         self._subscribed_nodes.append(node)
@@ -477,7 +485,13 @@ class Window(QMainWindow):
         logger.warning("showing error: %s", msg)
         self.ui.statusBar.show()
         self.ui.statusBar.setStyleSheet("QStatusBar { background-color : red; color : black; }")
-        self.ui.statusBar.showMessage(str(msg))
+        english = "An error occurred."
+        translated = self.tr("An error occurred.")
+        message = translated if translated == english else f"{translated}\n{english}"
+        detail = str(msg)
+        if detail and detail not in (translated, english):
+            message = f"{message}\n\n{detail}"
+        self.ui.statusBar.showMessage(message)
         QTimer.singleShot(1500, self.ui.statusBar.hide)
 
     def _on_connection_state_changed(self, state: str) -> None:
@@ -535,7 +549,7 @@ class Window(QMainWindow):
         if state == "reconnecting":
             self.ui.statusBar.show()
             self.ui.statusBar.setStyleSheet("QStatusBar { background-color : orange; color : black; }")
-            self.ui.statusBar.showMessage("Disconnected from server; auto-reconnect in progress…")
+            self.ui.statusBar.showMessage(self.tr("Disconnected from server; auto-reconnect in progress…"))
         else:
             self.ui.statusBar.hide()
 
@@ -664,7 +678,7 @@ class Window(QMainWindow):
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText("Restart for changes to take effect")
+        msg.setText(self.tr("Restart for changes to take effect"))
         msg.exec()
 
 
