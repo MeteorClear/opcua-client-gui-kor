@@ -549,7 +549,7 @@ class Window(QMainWindow):
         if state == "reconnecting":
             self.ui.statusBar.show()
             self.ui.statusBar.setStyleSheet("QStatusBar { background-color : orange; color : black; }")
-            self.ui.statusBar.showMessage(self.tr("Disconnected from server; auto-reconnect in progress…"))
+            self.ui.statusBar.showMessage(self.tr("Disconnected from server; auto-reconnect in progress..."))
         else:
             self.ui.statusBar.hide()
 

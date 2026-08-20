@@ -250,7 +250,7 @@
     </message>
     <message>
         <location filename="..\mainwindow.py" line="552" />
-        <source>Disconnected from server; auto-reconnect in progress…</source>
+        <source>Disconnected from server; auto-reconnect in progress...</source>
         <translation>서버 연결이 끊어졌습니다. 자동 재연결 중…</translation>
     </message>
 </context></TS>
