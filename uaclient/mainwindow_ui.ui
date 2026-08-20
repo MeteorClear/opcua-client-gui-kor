@@ -83,8 +83,17 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <widget class="QMenu" name="menuSelect_Language">
+     <property name="title">
+      <string>Select Language</string>
+     </property>
+     <addaction name="actionSystem_Default"/>
+     <addaction name="actionEnglish"/>
+     <addaction name="actionKorean"/>
+    </widget>
     <addaction name="actionDark_Mode"/>
     <addaction name="actionClient_Application_Certificate"/>
+    <addaction name="menuSelect_Language"/>
    </widget>
    <addaction name="menuOPC_UA_Client"/>
    <addaction name="menuSettings"/>
@@ -566,6 +575,30 @@
   <action name="actionClient_Application_Certificate">
    <property name="text">
     <string>Client Application Certificate</string>
+   </property>
+  </action>
+  <action name="actionSystem_Default">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>System Default</string>
+   </property>
+  </action>
+  <action name="actionEnglish">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">English</string>
+   </property>
+  </action>
+  <action name="actionKorean">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">한국어</string>
    </property>
   </action>
  </widget>
