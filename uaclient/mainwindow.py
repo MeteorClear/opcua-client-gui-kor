@@ -22,7 +22,7 @@ from PyQt6.QtCore import (
     Qt,
     pyqtSignal,
 )
-from PyQt6.QtGui import QAction, QCloseEvent, QIcon, QStandardItem, QStandardItemModel
+from PyQt6.QtGui import QAction, QActionGroup, QCloseEvent, QIcon, QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -339,6 +339,19 @@ class Window(QMainWindow):
         self.ui.statusBar.hide()
 
         self.settings = QSettings()
+        self._language_actions = {
+            "system": self.ui.actionSystem_Default,
+            "en": self.ui.actionEnglish,
+            "ko": self.ui.actionKorean,
+        }
+        self._language_action_group = QActionGroup(self)
+        self._language_action_group.setExclusive(True)
+        for action in self._language_actions.values():
+            self._language_action_group.addAction(action)
+        language_setting = self.settings.value("language", "system")
+        if language_setting not in ("system", "en", "ko"):
+            language_setting = "system"
+        self._language_actions[str(language_setting)].setChecked(True)
 
         self._address_list: list[str] = self.settings.value("address_list", ["opc.tcp://localhost:4840", "opc.tcp://localhost:53530/OPCUA/SimulationServer/"])
         self._address_list_max_count = int(self.settings.value("address_list_max_count", 10))
