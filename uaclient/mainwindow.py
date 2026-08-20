@@ -1,12 +1,14 @@
 import logging
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from PyQt6.QtCore import (
     QCoreApplication,
     QFile,
     QItemSelection,
+    QLibraryInfo,
     QLocale,
     QLoggingCategory,
     QMimeData,
@@ -16,6 +18,7 @@ from PyQt6.QtCore import (
     QSettings,
     QTextStream,
     QTimer,
+    QTranslator,
     Qt,
     pyqtSignal,
 )
@@ -71,6 +74,37 @@ def resolve_language(stored_language: object, ui_languages: list[str] | None = N
         if language == QLocale.Language.English:
             return "en"
     return "en"
+
+
+def load_translators(app: QApplication, language: str) -> tuple[QTranslator, ...]:
+    if language != "ko":
+        return ()
+
+    qm_path = Path(__file__).resolve().parent / "translations" / "opcua-client_ko.qm"
+    app_translator = QTranslator(app)
+    if not app_translator.load(str(qm_path)):
+        logger.warning("Failed to load application translation: %s", qm_path)
+        return ()
+
+    translators: list[QTranslator] = []
+    qt_translator = QTranslator(app)
+    qt_translations_path = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+    if qt_translator.load(QLocale("ko_KR"), "qtbase", "_", qt_translations_path):
+        if app.installTranslator(qt_translator):
+            translators.append(qt_translator)
+        else:
+            logger.warning("Failed to install Qt Korean translation")
+    else:
+        logger.warning("Failed to load Qt Korean translation from: %s", qt_translations_path)
+
+    if not app.installTranslator(app_translator):
+        for translator in translators:
+            app.removeTranslator(translator)
+        logger.warning("Failed to install application translation: %s", qm_path)
+        return ()
+
+    translators.append(app_translator)
+    return tuple(translators)
 
 
 class DataChangeHandler(QObject):
@@ -304,8 +338,6 @@ class Window(QMainWindow):
 
         self.ui.statusBar.hide()
 
-        QCoreApplication.setOrganizationName("FreeOpcUa")
-        QCoreApplication.setApplicationName("OpcUaClient")
         self.settings = QSettings()
 
         self._address_list: list[str] = self.settings.value("address_list", ["opc.tcp://localhost:4840", "opc.tcp://localhost:53530/OPCUA/SimulationServer/"])
@@ -608,11 +640,17 @@ class Window(QMainWindow):
 
 def main() -> None:
     app = QApplication(sys.argv)
+    QCoreApplication.setOrganizationName("FreeOpcUa")
+    QCoreApplication.setApplicationName("OpcUaClient")
+    language = resolve_language(QSettings().value("language", "system"))
+    _translators = load_translators(app, language)
     client = Window()
     handler = QtHandler(client.ui.logTextEdit)
     logging.getLogger().addHandler(handler)
     logging.getLogger("uaclient").setLevel(logging.INFO)
     logging.getLogger("uawidgets").setLevel(logging.INFO)
+
+    logger.info("Using language: %s", language)
 
     if QSettings().value("dark_mode", "false") == "true":
         file = QFile(":/dark.qss")
