@@ -7,6 +7,7 @@ from PyQt6.QtCore import (
     QCoreApplication,
     QFile,
     QItemSelection,
+    QLocale,
     QLoggingCategory,
     QMimeData,
     QModelIndex,
@@ -55,6 +56,21 @@ logger = logging.getLogger(__name__)
 # filters with no viewBox; Qt6's SVG painter logs "buffer size too big" for
 # each render. Icons still draw correctly, so silence just this category.
 QLoggingCategory.setFilterRules("qt.svg.draw.warning=false")
+
+
+def resolve_language(stored_language: object, ui_languages: list[str] | None = None) -> str:
+    if stored_language in ("en", "ko"):
+        return str(stored_language)
+
+    if ui_languages is None:
+        ui_languages = QLocale.system().uiLanguages()
+    for tag in ui_languages:
+        language = QLocale(tag).language()
+        if language == QLocale.Language.Korean:
+            return "ko"
+        if language == QLocale.Language.English:
+            return "en"
+    return "en"
 
 
 class DataChangeHandler(QObject):
