@@ -1,6 +1,6 @@
-# opcua-client-kor
+# opcua-client-gui-kor
 
-이 저장소는 [FreeOpcUa/opcua-client-gui](https://github.com/FreeOpcUa/opcua-client-gui) 저장소의 포크입니다.
+이 저장소는 [FreeOpcUa/opcua-client-gui](https://github.com/FreeOpcUa/opcua-client-gui) 저장소의 한국어 포크입니다.
 
 [asyncua](https://github.com/FreeOpcUa/opcua-asyncio)와 PyQt6로 만든 간단한 OPC UA GUI 클라이언트입니다.
 
@@ -22,11 +22,11 @@
 
 ## 설치
 
-Python 3.14 이상과 [`uv`](https://docs.astral.sh/uv/)가 필요합니다. [MeteorClear/opcua-client-gui](https://github.com/MeteorClear/opcua-client-gui) 저장소를 복제한 뒤 의존성을 설치하고 실행합니다.
+Python 3.14 이상과 [`uv`](https://docs.astral.sh/uv/)가 필요합니다. [MeteorClear/opcua-client-gui](https://github.com/MeteorClear/opcua-client-gui-kor.git) 저장소를 복제한 뒤 의존성을 설치하고 실행합니다.
 
 ```
-git clone https://github.com/MeteorClear/opcua-client-gui.git
-cd opcua-client-gui
+git clone https://github.com/MeteorClear/opcua-client-gui-kor.git
+cd opcua-client-gui-kor
 uv sync
 uv run python app.py
 ```
