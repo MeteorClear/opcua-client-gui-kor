@@ -34,7 +34,7 @@ class NewNodeBaseDialog(QDialog):
         self._layout = QHBoxLayout()
         self.vlayout.addLayout(self._layout)
 
-        self._layout.addWidget(QLabel("ns:", self))
+        self._layout.addWidget(QLabel(self.tr("ns:"), self))
 
         self.nsComboBox = QComboBox(self)
         uries = server.get_namespace_array()
@@ -46,12 +46,12 @@ class NewNodeBaseDialog(QDialog):
         self.nsComboBox.setCurrentIndex(nsidx)
         self._layout.addWidget(self.nsComboBox)
 
-        self._layout.addWidget(QLabel("Name:", self))
+        self._layout.addWidget(QLabel(self.tr("Name:"), self))
         self.nameLabel = QLineEdit(self)
         self.nameLabel.setMinimumWidth(120)
         self.nameLabel.setText("NoName")
         self._layout.addWidget(self.nameLabel)
-        self.nodeidCheckBox = QCheckBox("Auto NodeId", self)
+        self.nodeidCheckBox = QCheckBox(self.tr("Auto NodeId"), self)
         self.nodeidCheckBox.stateChanged.connect(self._show_nodeid)
         self._layout.addWidget(self.nodeidCheckBox)
         self.nodeidLineEdit = QLineEdit(self)
@@ -254,12 +254,12 @@ class NewUaMethodDialog(NewNodeBaseDialog):
     def add_row(self, mode: str) -> QHBoxLayout:
         rowlayout = QHBoxLayout(self)
 
-        rowlayout.addWidget(QLabel("Arg Name:", self))
+        rowlayout.addWidget(QLabel(self.tr("Arg Name:"), self))
         argNameLabel = QLineEdit(self)
         argNameLabel.setText("")
         rowlayout.addWidget(argNameLabel)
 
-        rowlayout.addWidget(QLabel("Description:", self))
+        rowlayout.addWidget(QLabel(self.tr("Description:"), self))
         argDescLabel = QLineEdit(self)
         argDescLabel.setText("")
         rowlayout.addWidget(argDescLabel)
@@ -278,16 +278,16 @@ class NewUaMethodDialog(NewNodeBaseDialog):
 
     def add_input_header(self) -> QHBoxLayout:
         header_row = QHBoxLayout(self)
-        header_row.addWidget(QLabel("Input", self))
-        button = QPushButton("Add input argument")
+        header_row.addWidget(QLabel(self.tr("Input"), self))
+        button = QPushButton(self.tr("Add input argument"))
         button.clicked.connect(self._add_input_row)
         header_row.addWidget(button)
         return header_row
 
     def add_output_header(self) -> QHBoxLayout:
         header_row = QHBoxLayout(self)
-        header_row.addWidget(QLabel("Output", self))
-        button = QPushButton("Add output argument")
+        header_row.addWidget(QLabel(self.tr("Output"), self))
+        button = QPushButton(self.tr("Add output argument"))
         header_row.addWidget(button)
         button.clicked.connect(self._add_output_row)
         return header_row

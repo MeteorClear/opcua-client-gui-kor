@@ -47,7 +47,12 @@ class RefsWidget(QObject):
         self.view.setModel(self.model)
         self.view.setItemDelegate(delegate)
         self.settings = QSettings()
-        self.model.setHorizontalHeaderLabels(['ReferenceType', 'NodeId', "BrowseName", "TypeDefinition"])
+        self.model.setHorizontalHeaderLabels([
+            self.tr("ReferenceType"),
+            self.tr("NodeId"),
+            self.tr("BrowseName"),
+            self.tr("TypeDefinition"),
+        ])
         header = self.view.horizontalHeader()
         assert header is not None
         state = self.settings.value("WindowState/refs_widget_state_v2", None)
@@ -57,11 +62,11 @@ class RefsWidget(QObject):
         header.setStretchLastSection(True)
         self.node: SyncNode | None = None
 
-        self.reloadAction = QAction("Reload", self.model)
+        self.reloadAction = QAction(self.tr("Reload"), self.model)
         self.reloadAction.triggered.connect(self.reload)
-        self.addRefAction = QAction("Add Reference", self.model)
+        self.addRefAction = QAction(self.tr("Add Reference"), self.model)
         self.addRefAction.triggered.connect(self.add_ref)
-        self.removeRefAction = QAction("Remove Reference", self.model)
+        self.removeRefAction = QAction(self.tr("Remove Reference"), self.model)
         self.removeRefAction.triggered.connect(self.remove_ref)
 
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
