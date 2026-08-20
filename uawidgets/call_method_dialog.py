@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class CallMethodDialog(QDialog):
     def __init__(self, parent: QWidget | None, server: Any, parent_node, method_node: SyncNode) -> None:
         QDialog.__init__(self, parent)
-        self.setWindowTitle("UA Method Call")
+        self.setWindowTitle(self.tr("UA Method Call"))
         self.server = server
         self.parent_node = parent_node
         self.method_node = method_node
@@ -33,7 +33,7 @@ class CallMethodDialog(QDialog):
         self.inputs: list[QLineEdit] = []
         self.outputs: list[QLabel] = []
 
-        self.vlayout.addWidget(QLabel("Input Arguments:", self))
+        self.vlayout.addWidget(QLabel(self.tr("Input Arguments:"), self))
         try:
             inputs = method_node.get_child("0:InputArguments")
             for arg in inputs.read_value():
@@ -43,11 +43,11 @@ class CallMethodDialog(QDialog):
 
         layout = QHBoxLayout()
         self.vlayout.addLayout(layout)
-        layout.addWidget(QLabel("Result:", self))
+        layout.addWidget(QLabel(self.tr("Result:"), self))
         self.result_label = QLabel("None")
         layout.addWidget(self.result_label)
 
-        self.vlayout.addWidget(QLabel("Output Arguments:", self))
+        self.vlayout.addWidget(QLabel(self.tr("Output Arguments:"), self))
         try:
             outputs = method_node.get_child("0:OutputArguments")
             for arg in outputs.read_value():
@@ -58,10 +58,10 @@ class CallMethodDialog(QDialog):
         layout = QHBoxLayout()
         self.vlayout.addLayout(layout)
         layout.addStretch()
-        close_button = QPushButton("Close")
+        close_button = QPushButton(self.tr("Close"))
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
-        call_button = QPushButton("Call Method")
+        call_button = QPushButton(self.tr("Call Method"))
         call_button.clicked.connect(self.call)
         layout.addWidget(call_button)
 
@@ -88,9 +88,9 @@ class CallMethodDialog(QDialog):
     def _add_input(self, arg: ua.Argument) -> None:
         layout = QHBoxLayout()
         self.vlayout.addLayout(layout)
-        layout.addWidget(QLabel(f"Name:{arg.Name}", self))
-        layout.addWidget(QLabel(f"Data type:{data_type_to_string(arg.DataType)}", self))
-        layout.addWidget(QLabel(f"Description:{arg.Description.Text}", self))
+        layout.addWidget(QLabel(self.tr("Name: {name}").format(name=arg.Name), self))
+        layout.addWidget(QLabel(self.tr("Data type: {type}").format(type=data_type_to_string(arg.DataType)), self))
+        layout.addWidget(QLabel(self.tr("Description: {description}").format(description=arg.Description.Text), self))
         lineedit = QLineEdit(self)
         lineedit.data_type = self.server.get_node(arg.DataType)  # type: ignore[attr-defined]
         self.inputs.append(lineedit)
@@ -99,8 +99,8 @@ class CallMethodDialog(QDialog):
     def _add_output(self, arg: ua.Argument) -> None:
         layout = QHBoxLayout()
         self.vlayout.addLayout(layout)
-        layout.addWidget(QLabel(f"Data Type: {data_type_to_string(arg.DataType)}"))
-        layout.addWidget(QLabel("Value:"))
+        layout.addWidget(QLabel(self.tr("Data type: {type}").format(type=data_type_to_string(arg.DataType))))
+        layout.addWidget(QLabel(self.tr("Value:")))
         label = QLabel("", self)
         self.outputs.append(label)
         layout.addWidget(label)

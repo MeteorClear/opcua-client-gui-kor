@@ -26,7 +26,13 @@ class ApplicationCertificateDialog(QDialog):
         self.ui.generateButton.clicked.connect(self.generate)
 
     def show_error(self, ex: Exception) -> None:
-        QMessageBox.warning(self, "Certificate generation failed", str(ex))
+        english = "Failed to generate application certificate."
+        translated = self.tr("Failed to generate application certificate.")
+        message = translated if translated == english else f"{translated}\n{english}"
+        detail = str(ex)
+        if detail and detail not in (english, translated):
+            message = f"{message}\n\n{detail}"
+        QMessageBox.warning(self, self.tr("Certificate generation failed"), message)
 
     @trycatchslot
     def generate(self) -> None:
@@ -59,9 +65,9 @@ class ApplicationCertificateDialog(QDialog):
     def get_certificate(self) -> None:
         path, ok = QFileDialog.getOpenFileName(
             self,
-            "Select application certificate",
+            self.tr("Select application certificate"),
             self.uaclient.application_certificate_path or "",
-            "Certificate (*.der)",
+            self.tr("Certificate (*.der)"),
         )
         if ok:
             self.ui.certificateLabel.setText(path)
@@ -69,9 +75,9 @@ class ApplicationCertificateDialog(QDialog):
     def get_private_key(self) -> None:
         path, ok = QFileDialog.getOpenFileName(
             self,
-            "Select application private key",
+            self.tr("Select application private key"),
             self.uaclient.application_private_key_path or "",
-            "Private key (*.pem)",
+            self.tr("Private key (*.pem)"),
         )
         if ok:
             self.ui.privateKeyLabel.setText(path)

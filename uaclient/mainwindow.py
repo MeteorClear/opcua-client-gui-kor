@@ -1,12 +1,15 @@
 import logging
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from PyQt6.QtCore import (
     QCoreApplication,
     QFile,
     QItemSelection,
+    QLibraryInfo,
+    QLocale,
     QLoggingCategory,
     QMimeData,
     QModelIndex,
@@ -15,10 +18,11 @@ from PyQt6.QtCore import (
     QSettings,
     QTextStream,
     QTimer,
+    QTranslator,
     Qt,
     pyqtSignal,
 )
-from PyQt6.QtGui import QAction, QCloseEvent, QIcon, QStandardItem, QStandardItemModel
+from PyQt6.QtGui import QAction, QActionGroup, QCloseEvent, QIcon, QStandardItem, QStandardItemModel
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -55,6 +59,52 @@ logger = logging.getLogger(__name__)
 # filters with no viewBox; Qt6's SVG painter logs "buffer size too big" for
 # each render. Icons still draw correctly, so silence just this category.
 QLoggingCategory.setFilterRules("qt.svg.draw.warning=false")
+
+
+def resolve_language(stored_language: object, ui_languages: list[str] | None = None) -> str:
+    if stored_language in ("en", "ko"):
+        return str(stored_language)
+
+    if ui_languages is None:
+        ui_languages = QLocale.system().uiLanguages()
+    for tag in ui_languages:
+        language = QLocale(tag).language()
+        if language == QLocale.Language.Korean:
+            return "ko"
+        if language == QLocale.Language.English:
+            return "en"
+    return "en"
+
+
+def load_translators(app: QApplication, language: str) -> tuple[QTranslator, ...]:
+    if language != "ko":
+        return ()
+
+    qm_path = Path(__file__).resolve().parent / "translations" / "opcua-client_ko.qm"
+    app_translator = QTranslator(app)
+    if not app_translator.load(str(qm_path)):
+        logger.warning("Failed to load application translation: %s", qm_path)
+        return ()
+
+    translators: list[QTranslator] = []
+    qt_translator = QTranslator(app)
+    qt_translations_path = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+    if qt_translator.load(QLocale("ko_KR"), "qtbase", "_", qt_translations_path):
+        if app.installTranslator(qt_translator):
+            translators.append(qt_translator)
+        else:
+            logger.warning("Failed to install Qt Korean translation")
+    else:
+        logger.warning("Failed to load Qt Korean translation from: %s", qt_translations_path)
+
+    if not app.installTranslator(app_translator):
+        for translator in translators:
+            app.removeTranslator(translator)
+        logger.warning("Failed to install application translation: %s", qm_path)
+        return ()
+
+    translators.append(app_translator)
+    return tuple(translators)
 
 
 class DataChangeHandler(QObject):
@@ -168,7 +218,11 @@ class DataChangeUI:
         self._subhandler = DataChangeHandler()
         self._subscribed_nodes: list[SyncNode] = []
         self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(["DisplayName", "Value", "Timestamp"])
+        self.model.setHorizontalHeaderLabels([
+            "DisplayName",
+            QCoreApplication.translate("DataChangeUI", "Value"),
+            QCoreApplication.translate("DataChangeUI", "Timestamp"),
+        ])
         self.window.ui.subView.setModel(self.model)
         header = self.window.ui.subView.horizontalHeader()
         assert header is not None
@@ -229,7 +283,11 @@ class DataChangeUI:
             logger.warning("already subscribed to node: %s ", node)
             return
         text = str(node.read_display_name().Text)
-        row = [QStandardItem(text), QStandardItem("No Data yet"), QStandardItem("")]
+        row = [
+            QStandardItem(text),
+            QStandardItem(QCoreApplication.translate("DataChangeUI", "No Data yet")),
+            QStandardItem(""),
+        ]
         row[0].setData(node)
         self.model.appendRow(row)
         self._subscribed_nodes.append(node)
@@ -311,9 +369,22 @@ class Window(QMainWindow):
 
         self.ui.statusBar.hide()
 
-        QCoreApplication.setOrganizationName("FreeOpcUa")
-        QCoreApplication.setApplicationName("OpcUaClient")
         self.settings = QSettings()
+        self._language_actions = {
+            "system": self.ui.actionSystem_Default,
+            "en": self.ui.actionEnglish,
+            "ko": self.ui.actionKorean,
+        }
+        self._language_action_group = QActionGroup(self)
+        self._language_action_group.setExclusive(True)
+        for language, action in self._language_actions.items():
+            action.setData(language)
+            self._language_action_group.addAction(action)
+        self._language_action_group.triggered.connect(self._change_language)
+        language_setting = self.settings.value("language", "system")
+        if language_setting not in ("system", "en", "ko"):
+            language_setting = "system"
+        self._language_actions[str(language_setting)].setChecked(True)
 
         self._address_list: list[str] = self.settings.value("address_list", ["opc.tcp://localhost:4840", "opc.tcp://localhost:53530/OPCUA/SimulationServer/"])
         self._address_list_max_count = int(self.settings.value("address_list_max_count", 10))
@@ -369,6 +440,21 @@ class Window(QMainWindow):
 
         self._apply_ui_state("idle")
 
+    def _change_language(self, action: QAction) -> None:
+        language = str(action.data())
+        current_language = self.settings.value("language", "system")
+        if current_language not in ("system", "en", "ko"):
+            current_language = "system"
+        if language == current_language:
+            return
+
+        self.settings.setValue("language", language)
+        QMessageBox.information(
+            self,
+            self.tr("Language Changed"),
+            self.tr("Restart for changes to take effect"),
+        )
+
     def _uri_changed(self, uri: str) -> None:
         self.uaclient.load_security_settings(uri)
 
@@ -422,7 +508,13 @@ class Window(QMainWindow):
         logger.warning("showing error: %s", msg)
         self.ui.statusBar.show()
         self.ui.statusBar.setStyleSheet("QStatusBar { background-color : red; color : black; }")
-        self.ui.statusBar.showMessage(str(msg))
+        english = "An error occurred."
+        translated = self.tr("An error occurred.")
+        message = translated if translated == english else f"{translated}\n{english}"
+        detail = str(msg)
+        if detail and detail not in (translated, english):
+            message = f"{message}\n\n{detail}"
+        self.ui.statusBar.showMessage(message)
         QTimer.singleShot(1500, self.ui.statusBar.hide)
 
     def _on_connection_state_changed(self, state: str) -> None:
@@ -480,7 +572,7 @@ class Window(QMainWindow):
         if state == "reconnecting":
             self.ui.statusBar.show()
             self.ui.statusBar.setStyleSheet("QStatusBar { background-color : orange; color : black; }")
-            self.ui.statusBar.showMessage("Disconnected from server; auto-reconnect in progress…")
+            self.ui.statusBar.showMessage(self.tr("Disconnected from server; auto-reconnect in progress..."))
         else:
             self.ui.statusBar.hide()
 
@@ -609,17 +701,23 @@ class Window(QMainWindow):
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText("Restart for changes to take effect")
+        msg.setText(self.tr("Restart for changes to take effect"))
         msg.exec()
 
 
 def main() -> None:
     app = QApplication(sys.argv)
+    QCoreApplication.setOrganizationName("FreeOpcUa")
+    QCoreApplication.setApplicationName("OpcUaClient")
+    language = resolve_language(QSettings().value("language", "system"))
+    _translators = load_translators(app, language)
     client = Window()
     handler = QtHandler(client.ui.logTextEdit)
     logging.getLogger().addHandler(handler)
     logging.getLogger("uaclient").setLevel(logging.INFO)
     logging.getLogger("uawidgets").setLevel(logging.INFO)
+
+    logger.info("Using language: %s", language)
 
     if QSettings().value("dark_mode", "false") == "true":
         file = QFile(":/dark.qss")

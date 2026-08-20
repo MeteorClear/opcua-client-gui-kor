@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable
 
-from PyQt6.QtCore import pyqtSignal, QMimeData, QModelIndex, QObject, QSize, Qt, QSettings
+from PyQt6.QtCore import QCoreApplication, pyqtSignal, QMimeData, QModelIndex, QObject, QSize, Qt, QSettings
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QAction
 from PyQt6.QtWidgets import QApplication, QAbstractItemView, QHeaderView, QTreeView
 
@@ -27,7 +27,7 @@ class TreeWidget(QObject):
         self.model.error.connect(self.error)
         self.view.setModel(self.model)
 
-        self.model.setHorizontalHeaderLabels(['DisplayName', "BrowseName", 'NodeId'])
+        self.model.setHorizontalHeaderLabels([self.tr("DisplayName"), self.tr("BrowseName"), self.tr("NodeId")])
         # Clamp icon rendering size; the bundled SVGs lack viewBox attributes
         # and Qt6's SVG painter logs "buffer size too big" when asked to
         # render them at unbounded sizes.
@@ -42,7 +42,7 @@ class TreeWidget(QObject):
         if state is not None:
             header.restoreState(state)
 
-        self.actionReload = QAction("Reload", self)
+        self.actionReload = QAction(self.tr("Reload"), self)
         self.actionReload.triggered.connect(self.reload_current)
 
     def save_state(self) -> None:
@@ -167,7 +167,9 @@ class TreeWidget(QObject):
             return None
         node = it.data(Qt.ItemDataRole.UserRole)
         if not node:
-            ex = RuntimeError("Item does not contain node data, report!")
+            english = "Item does not contain node data, report!"
+            translated = self.tr("Item does not contain node data, report!")
+            ex = RuntimeError(translated if translated == english else f"{translated}\n{english}")
             self.error.emit(ex)
             raise ex
         return node
@@ -206,7 +208,7 @@ class TreeViewModel(QStandardItemModel):
         parent: QStandardItem | None = None,
         node: SyncNode | None = None,
     ) -> None:
-        dname = bname = nodeid = "No Value"
+        dname = bname = nodeid = QCoreApplication.translate("TreeViewModel", "No Value")
         if desc.DisplayName:
             dname = desc.DisplayName.Text
         if desc.BrowseName:

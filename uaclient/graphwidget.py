@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any
 
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QCoreApplication, QTimer, Qt
 from PyQt6.QtWidgets import QLabel
 
 from asyncua import ua
@@ -40,7 +40,7 @@ class GraphUI:
         self.uaclient = uaclient
 
         if not use_graph:
-            self.window.ui.graphLayout.addWidget(QLabel("pyqtgraph or numpy not installed"))
+            self.window.ui.graphLayout.addWidget(QLabel(QCoreApplication.translate("GraphUI", "pyqtgraph or numpy not installed")))
             return
         self._node_list: list[SyncNode] = []
         self._channels: list[Any] = []

@@ -19,7 +19,10 @@ Repository = "https://github.com/FreeOpcUa/opcua-client-gui"
 opcua-client = "uaclient.mainwindow:main"
 
 [dependency-groups]
-dev = ["mypy"]
+dev = [
+  "mypy",
+  "PySide6-Essentials>=6.11,<6.12",
+]
 
 [build-system]
 requires = ["setuptools>=61"]
@@ -53,4 +56,5 @@ follow_imports = "skip"
 packages = ["uaclient", "uaclient.theme", "uawidgets"]
 
 [tool.setuptools.package-data]
+uaclient = ["translations/*.qm"]
 uawidgets = ["py.typed"]

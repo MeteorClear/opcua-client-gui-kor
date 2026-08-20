@@ -122,7 +122,7 @@ class AttrsWidget(QObject):
         self.settings = QSettings()
         self.view.setItemDelegate(delegate)
         self.model = QStandardItemModel()
-        self.model.setHorizontalHeaderLabels(['Attribute', 'Value', 'DataType'])
+        self.model.setHorizontalHeaderLabels([self.tr("Attribute"), self.tr("Value"), "DataType"])
         header = self.view.header()
         assert header is not None
         state = self.settings.value("WindowState/attrs_widget_state_v2", None)
@@ -138,7 +138,7 @@ class AttrsWidget(QObject):
 
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.view.customContextMenuRequested.connect(self.showContextMenu)
-        copyaction = QAction("&Copy Value", self.model)
+        copyaction = QAction(self.tr("&Copy Value"), self.model)
         copyaction.triggered.connect(self._copy_value)
         self._contextMenu = QMenu()
         self._contextMenu.addAction(copyaction)
@@ -263,7 +263,7 @@ class AttrsWidget(QObject):
         vitem.setData(MemberData(obj, name, val, vtype), Qt.ItemDataRole.UserRole)
         row = [name_item, vitem, QStandardItem(str(vtype))]
         if isinstance(val, list):
-            row[2].setText("List of " + str(vtype))
+            row[2].setText(self.tr("List of {type}").format(type=vtype))
             self._show_list(name_item, val, vtype)
         elif vtype == ua.VariantType.ExtensionObject:
             self._show_ext_obj(name_item, val)
@@ -307,9 +307,9 @@ class AttrsWidget(QObject):
 
     def _show_timestamps(self, item: QStandardItem, dv: ua.DataValue) -> None:
         string = val_to_string(dv.ServerTimestamp)
-        item.appendRow([QStandardItem("Server Timestamp"), QStandardItem(string), QStandardItem(ua.VariantType.DateTime.name)])
+        item.appendRow([QStandardItem(self.tr("Server Timestamp")), QStandardItem(string), QStandardItem(ua.VariantType.DateTime.name)])
         string = val_to_string(dv.SourceTimestamp)
-        item.appendRow([QStandardItem("Source Timestamp"), QStandardItem(string), QStandardItem(ua.VariantType.DateTime.name)])
+        item.appendRow([QStandardItem(self.tr("Source Timestamp")), QStandardItem(string), QStandardItem(ua.VariantType.DateTime.name)])
 
     def get_all_attrs(self) -> list[tuple[ua.AttributeIds, ua.DataValue]]:
         assert self.current_node is not None
