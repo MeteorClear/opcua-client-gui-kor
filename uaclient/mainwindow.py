@@ -346,8 +346,10 @@ class Window(QMainWindow):
         }
         self._language_action_group = QActionGroup(self)
         self._language_action_group.setExclusive(True)
-        for action in self._language_actions.values():
+        for language, action in self._language_actions.items():
+            action.setData(language)
             self._language_action_group.addAction(action)
+        self._language_action_group.triggered.connect(self._change_language)
         language_setting = self.settings.value("language", "system")
         if language_setting not in ("system", "en", "ko"):
             language_setting = "system"
@@ -406,6 +408,21 @@ class Window(QMainWindow):
         )
 
         self._apply_ui_state("idle")
+
+    def _change_language(self, action: QAction) -> None:
+        language = str(action.data())
+        current_language = self.settings.value("language", "system")
+        if current_language not in ("system", "en", "ko"):
+            current_language = "system"
+        if language == current_language:
+            return
+
+        self.settings.setValue("language", language)
+        QMessageBox.information(
+            self,
+            self.tr("Language Changed"),
+            self.tr("Restart for changes to take effect"),
+        )
 
     def _uri_changed(self, uri: str) -> None:
         self.uaclient.load_security_settings(uri)
