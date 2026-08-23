@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from PyQt6.QtCore import QSettings, Qt
+from PyQt6.QtCore import QCoreApplication, QSettings, Qt
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -34,7 +34,7 @@ class NewNodeBaseDialog(QDialog):
         self._layout = QHBoxLayout()
         self.vlayout.addLayout(self._layout)
 
-        self._layout.addWidget(QLabel(self.tr("ns:"), self))
+        self._layout.addWidget(QLabel(QCoreApplication.translate("NewNodeBaseDialog", "ns:"), self))
 
         self.nsComboBox = QComboBox(self)
         uries = server.get_namespace_array()
@@ -46,12 +46,12 @@ class NewNodeBaseDialog(QDialog):
         self.nsComboBox.setCurrentIndex(nsidx)
         self._layout.addWidget(self.nsComboBox)
 
-        self._layout.addWidget(QLabel(self.tr("Name:"), self))
+        self._layout.addWidget(QLabel(QCoreApplication.translate("NewNodeBaseDialog", "Name:"), self))
         self.nameLabel = QLineEdit(self)
         self.nameLabel.setMinimumWidth(120)
         self.nameLabel.setText("NoName")
         self._layout.addWidget(self.nameLabel)
-        self.nodeidCheckBox = QCheckBox(self.tr("Auto NodeId"), self)
+        self.nodeidCheckBox = QCheckBox(QCoreApplication.translate("NewNodeBaseDialog", "Auto NodeId"), self)
         self.nodeidCheckBox.stateChanged.connect(self._show_nodeid)
         self._layout.addWidget(self.nodeidCheckBox)
         self.nodeidLineEdit = QLineEdit(self)
